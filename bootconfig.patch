@@ -1,0 +1,73 @@
+diff -ruw -x '*.seed' orig-iso/boot/grub/grub.cfg unpacked-iso/boot/grub/grub.cfg
+--- orig-iso/boot/grub/grub.cfg	2019-08-05 21:28:48.000000000 +0200
++++ unpacked-iso/boot/grub/grub.cfg	2019-11-02 10:35:21.061123775 +0100
+@@ -10,24 +10,9 @@
+ set menu_color_normal=white/black
+ set menu_color_highlight=black/light-gray
+ 
+-set timeout=5
+-menuentry "Try Ubuntu without installing" {
+-	set gfxpayload=keep
+-	linux	/casper/vmlinuz  file=/cdrom/preseed/ubuntu.seed boot=casper quiet splash ---
+-	initrd	/casper/initrd
+-}
+-menuentry "Install Ubuntu" {
+-	set gfxpayload=keep
+-	linux	/casper/vmlinuz  file=/cdrom/preseed/ubuntu.seed boot=casper only-ubiquity quiet splash ---
+-	initrd	/casper/initrd
+-}
++set timeout=0
+ menuentry "OEM install (for manufacturers)" {
+ 	set gfxpayload=keep
+-	linux	/casper/vmlinuz  file=/cdrom/preseed/ubuntu.seed boot=casper only-ubiquity quiet splash oem-config/enable=true ---
+-	initrd	/casper/initrd
+-}
+-menuentry "Check disc for defects" {
+-	set gfxpayload=keep
+-	linux	/casper/vmlinuz  boot=casper integrity-check quiet splash ---
++	linux	/casper/vmlinuz  file=/cdrom/preseed/ubuntu.seed boot=casper automatic-ubiquity quiet splash automatic-oem-config ---
+ 	initrd	/casper/initrd
+ }
+diff -ruw -x '*.seed' orig-iso/isolinux/gfxboot.cfg unpacked-iso/isolinux/gfxboot.cfg
+--- orig-iso/isolinux/gfxboot.cfg	2019-08-05 21:28:48.000000000 +0200
++++ unpacked-iso/isolinux/gfxboot.cfg	2019-11-02 10:34:12.253337617 +0100
+@@ -2,11 +2,6 @@
+ background=0x958490
+ screen-colour=0x270A1E
+ hidden-timeout=2
+-label normal=Normal
+-append normal=
+-label driverupdates=Use driver update disc
+-append driverupdates=debian-installer/driver-update=true
+-applies driverupdates=live live-install
+-label oem=OEM install (for manufacturers)
+-append oem=oem-config/enable=true
+-applies oem=live live-install install
++label normal=OEM install (for manufacturers)
++append normal=oem-config/enable=true
++applies normal=live live-install install
+diff -ruw -x '*.seed' orig-iso/isolinux/txt.cfg unpacked-iso/isolinux/txt.cfg
+--- orig-iso/isolinux/txt.cfg	2019-08-05 21:28:48.000000000 +0200
++++ unpacked-iso/isolinux/txt.cfg	2019-11-02 10:35:34.701279393 +0100
+@@ -1,19 +1,5 @@
+-default live
+-label live
+-  menu label ^Try Ubuntu without installing
+-  kernel /casper/vmlinuz
+-  append  file=/cdrom/preseed/ubuntu.seed boot=casper initrd=/casper/initrd quiet splash ---
++default live-install
+ label live-install
+   menu label ^Install Ubuntu
+   kernel /casper/vmlinuz
+-  append  file=/cdrom/preseed/ubuntu.seed boot=casper only-ubiquity initrd=/casper/initrd quiet splash ---
+-label check
+-  menu label ^Check disc for defects
+-  kernel /casper/vmlinuz
+-  append  boot=casper integrity-check initrd=/casper/initrd quiet splash ---
+-label memtest
+-  menu label Test ^memory
+-  kernel /install/mt86plus
+-label hd
+-  menu label ^Boot from first hard disk
+-  localboot 0x80
++  append  file=/cdrom/preseed/ubuntu.seed boot=casper automatic-ubiquity initrd=/casper/initrd quiet splash automatic-oem-config ---
