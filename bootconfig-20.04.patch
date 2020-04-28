@@ -1,0 +1,11 @@
+--- orig-iso/boot/grub/grub.cfg	2020-04-23 09:51:19.000000000 +0200
++++ unpacked-iso/boot/grub/grub.cfg	2020-04-28 16:12:56.313944808 +0200
+@@ -23,7 +23,7 @@
+ }
+ menuentry "OEM install (for manufacturers)" {
+ 	set gfxpayload=keep
+-	linux	/casper/vmlinuz  file=/cdrom/preseed/ubuntu.seed only-ubiquity quiet splash oem-config/enable=true ---
++	linux	/casper/vmlinuz  file=/cdrom/preseed/ubuntu.seed automatic-ubiquity quiet splash automatic-oem-config ---
+ 	initrd	/casper/initrd
+ }
+ grub_platform

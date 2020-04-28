@@ -7,7 +7,8 @@ command -v wget >/dev/null 2>&1 || { echo >&2 "Please install 'wget' first.  Abo
 set -xe
 
 # Basic parameters
-UBUNTU_RELEASE="18.04.3"
+#UBUNTU_RELEASE="18.04.3"
+UBUNTU_RELEASE="20.04"
 RELEASE_ISO_FILENAME="ubuntu-${UBUNTU_RELEASE}-desktop-amd64.iso"
 CUSTOM_ISO_FILENAME="ubuntu-${UBUNTU_RELEASE}-nitrokey-oem-amd64.iso"
 
@@ -30,8 +31,8 @@ pushd unpacked-iso
 # Patch ISOLINUX and GRUB configs to remove unnecessary choices and, more
 # importantly, add kernel command line arguments that force Ubiquity into
 # automatic mode
-patch -p1 --forward < ../bootconfig.patch
-cp ../nitrokey-oem.seed preseed/ubuntu.seed
+patch -p1 --forward < ../bootconfig-${UBUNTU_RELEASE}.patch
+cp ../nitrokey-oem-${UBUNTU_RELEASE}.seed preseed/ubuntu.seed
 cp ../post-install.sh ./
 popd
 
