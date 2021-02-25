@@ -9,14 +9,15 @@ set -xe
 # Basic parameters
 #UBUNTU_RELEASE="18.04.3"
 UBUNTU_RELEASE="20.04"
-RELEASE_ISO_FILENAME="ubuntu-${UBUNTU_RELEASE}-desktop-amd64.iso"
+UBUNTU_POINT_RELEASE=".2.0"
+RELEASE_ISO_FILENAME="ubuntu-${UBUNTU_RELEASE}${UBUNTU_POINT_RELEASE}-desktop-amd64.iso"
 CUSTOM_ISO_FILENAME="ubuntu-${UBUNTU_RELEASE}-nitrokey-oem-amd64.iso"
 
 UNPACKED_IMAGE_PATH="./unpacked-iso/"
 MBR_IMAGE_FILENAME="${RELEASE_ISO_FILENAME}.mbr"
 
 if [ ! -f "${RELEASE_ISO_FILENAME}" ]; then
-	wget "http://releases.ubuntu.com/${UBUNTU_RELEASE}/${RELEASE_ISO_FILENAME}"
+	wget "https://releases.ubuntu.com/${UBUNTU_RELEASE}/${RELEASE_ISO_FILENAME}"
 fi
 
 # It's easier to copy the MBR off the original image than to generate a new one
