@@ -10,9 +10,6 @@ apt-get -y remove ubuntu-web-launchers
 add-apt-repository -y ppa:nitrokey/nitrokey
 apt-get -y install nitrokey-app
 
-# Install dkms rtl8821ce driver
-apt-get -y install rtl8821ce-dkms
-
 # Add a new dconf database and use it to append Nitrokey App to favorite apps
 echo "user-db:user" > /etc/dconf/profile/user
 echo "system-db:local" >> /etc/dconf/profile/user
