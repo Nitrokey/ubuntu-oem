@@ -17,7 +17,7 @@ UNPACKED_IMAGE_PATH="./unpacked-iso/"
 MBR_IMAGE_FILENAME="${RELEASE_ISO_FILENAME}.mbr"
 
 if [ ! -f "${RELEASE_ISO_FILENAME}" ]; then
-	wget "https://releases.ubuntu.com/${UBUNTU_RELEASE}/${RELEASE_ISO_FILENAME}"
+	wget -q "https://releases.ubuntu.com/${UBUNTU_RELEASE}/${RELEASE_ISO_FILENAME}"
 fi
 
 # It's easier to copy the MBR off the original image than to generate a new one
