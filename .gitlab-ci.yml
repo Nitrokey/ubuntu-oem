@@ -19,9 +19,10 @@ variables:
   UPLOAD_FOLDER: "ubuntu-oem"
 
 oem-build:
-  image: ghcr.io/lennardboediger/ci-oem-release:latest
+  image: registry.git.nitrokey.com/nitrokey/gitlab-ci/ci-oem-release:latest
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
   tags:
     - docker
   stage: build
