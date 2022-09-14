@@ -1,0 +1,14 @@
+--- orig/boot/grub/grub.cfg	2022-08-09 14:07:55.000000000 +0200
++++ unpacked-iso/boot/grub/grub.cfg	2022-09-14 13:17:59.863000000 +0200
+@@ -15,9 +15,9 @@
+ 	linux	/casper/vmlinuz nomodeset file=/cdrom/preseed/ubuntu.seed maybe-ubiquity quiet splash --- 
+ 	initrd	/casper/initrd
+ }
+-menuentry "OEM install (for manufacturers)" {
++menuentry "Nitrokey OEM install" {
+ 	set gfxpayload=keep
+-	linux	/casper/vmlinuz file=/cdrom/preseed/ubuntu.seed only-ubiquity oem-config/enable=true quiet splash --- 
++	linux	/casper/vmlinuz file=/cdrom/preseed/ubuntu.seed automatic-ubiquity quiet splash automatic-oem-config --- 
+ 	initrd	/casper/initrd
+ }
+ grub_platform
