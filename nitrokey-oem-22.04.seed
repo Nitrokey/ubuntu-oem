@@ -13,15 +13,6 @@
 d-i oem-config/enable boolean true
 d-i ubiquity/summary note
 
-# At the very end of installation:
-# - install Nitrokey App
-# - remove Amazon adware
-# - finalize OEM install immediately
-ubiquity ubiquity/success_command string \
-	cp /cdrom/post-install.sh /target/root/; \
-	chmod 0700 /target/root/post-install.sh; \
-	in-target /root/post-install.sh
-
 # Preseeding only locale sets language, country and locale.
 # Encoding must be set *somewhere*, such as here, otherwise
 # a broken system is produced.
@@ -130,6 +121,15 @@ tasksel	tasksel/first	multiselect ubuntu-desktop
 # have the space to include them on the DVD, they're useful and we might as
 # well keep them installed.
 ubiquity	ubiquity/keep-installed	string icedtea6-plugin openoffice.org
+
+# At the very end of installation:
+# - install Nitrokey App
+# - remove Amazon adware
+# - finalize OEM install immediately
+ubiquity ubiquity/success_command string \
+	cp /cdrom/post-install.sh /target/root/; \
+	chmod 0700 /target/root/post-install.sh; \
+	in-target /root/post-install.sh
 
 ### Finishing up the installation
 # Avoid that last message about the install being complete.

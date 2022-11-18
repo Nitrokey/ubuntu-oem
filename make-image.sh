@@ -7,28 +7,31 @@ command -v wget >/dev/null 2>&1 || { echo >&2 "Please install 'wget' first.  Abo
 set -xe
 
 # Basic parameters
-#UBUNTU_RELEASE="18.04.3"
-DEVICE=nitropad
-#UBUNTU_RELEASE="20.04"
+DEVICE=nitropad_nitropc
 UBUNTU_RELEASE="22.04"
 UBUNTU_POINT_RELEASE=".1"
 RELEASE_ISO_FILENAME="ubuntu-${UBUNTU_RELEASE}${UBUNTU_POINT_RELEASE}-desktop-amd64.iso"
 CUSTOM_ISO_FILENAME="ubuntu-${UBUNTU_RELEASE}${UBUNTU_POINT_RELEASE}-${DEVICE}-oem-amd64.iso"
+#DOWNLOAD_URL="https://releases.ubuntu.com/${UBUNTU_RELEASE}/${RELEASE_ISO_FILENAME}"
+
+# Use Daily Image because of this Bug: https://bugs.launchpad.net/ubuntu/+source/snapd/+bug/1983528
+DOWNLOAD_URL="https://cdimage.ubuntu.com/jammy/daily-live/20220920/jammy-desktop-amd64.iso"
 
 UNPACKED_IMAGE_PATH="./unpacked-iso/"
 MBR_IMAGE_FILENAME="${RELEASE_ISO_FILENAME}.mbr"
 EFI_IMAGE_FILNAME="${RELEASE_ISO_FILENAME}.efi"
 
 if [ ! -f "${RELEASE_ISO_FILENAME}" ]; then
-	wget -q "https://releases.ubuntu.com/${UBUNTU_RELEASE}/${RELEASE_ISO_FILENAME}"
+        wget -q ${DOWNLOAD_URL} -O ${RELEASE_ISO_FILENAME}
 fi
 
 # It's easier to copy the MBR off the original image than to generate a new one
 # that would be identical anyway
 # see https://askubuntu.com/questions/1403546/ubuntu-22-04-build-iso-both-mbr-and-efi
-
 dd if="${RELEASE_ISO_FILENAME}" bs=1 count=432 of=${MBR_IMAGE_FILENAME}
-dd if="${RELEASE_ISO_FILENAME}" bs=512 skip=7129428 count=8496 of=${EFI_IMAGE_FILNAME}
+
+# this can change in the relase iso needs to be checked if the relase changes 
+dd if="${RELEASE_ISO_FILENAME}" bs=512 skip=7989048 count=8496 of=${EFI_IMAGE_FILNAME}
 
 # Unpack ISO, make data writable
 xorriso -osirrox on -indev  "${RELEASE_ISO_FILENAME}" -- -extract / "${UNPACKED_IMAGE_PATH}"
