@@ -7,22 +7,31 @@ command -v wget >/dev/null 2>&1 || { echo >&2 "Please install 'wget' first.  Abo
 set -xe
 
 # Basic parameters
-#UBUNTU_RELEASE="18.04.3"
-UBUNTU_RELEASE="20.04"
-UBUNTU_POINT_RELEASE=".2.0"
+DEVICE=nitropad_nitropc
+UBUNTU_RELEASE="22.04"
+UBUNTU_POINT_RELEASE=".1"
 RELEASE_ISO_FILENAME="ubuntu-${UBUNTU_RELEASE}${UBUNTU_POINT_RELEASE}-desktop-amd64.iso"
-CUSTOM_ISO_FILENAME="ubuntu-${UBUNTU_RELEASE}-nitrokey-oem-amd64.iso"
+CUSTOM_ISO_FILENAME="ubuntu-${UBUNTU_RELEASE}${UBUNTU_POINT_RELEASE}-${DEVICE}-oem-amd64.iso"
+#DOWNLOAD_URL="https://releases.ubuntu.com/${UBUNTU_RELEASE}/${RELEASE_ISO_FILENAME}"
+
+# Use Daily Image because of this Bug: https://bugs.launchpad.net/ubuntu/+source/snapd/+bug/1983528
+DOWNLOAD_URL="https://cdimage.ubuntu.com/jammy/daily-live/20220920/jammy-desktop-amd64.iso"
 
 UNPACKED_IMAGE_PATH="./unpacked-iso/"
 MBR_IMAGE_FILENAME="${RELEASE_ISO_FILENAME}.mbr"
+EFI_IMAGE_FILNAME="${RELEASE_ISO_FILENAME}.efi"
 
 if [ ! -f "${RELEASE_ISO_FILENAME}" ]; then
-	wget "https://releases.ubuntu.com/${UBUNTU_RELEASE}/${RELEASE_ISO_FILENAME}"
+        wget -q ${DOWNLOAD_URL} -O ${RELEASE_ISO_FILENAME}
 fi
 
 # It's easier to copy the MBR off the original image than to generate a new one
 # that would be identical anyway
-dd if="${RELEASE_ISO_FILENAME}" bs=446 count=1 of="${MBR_IMAGE_FILENAME}"
+# see https://askubuntu.com/questions/1403546/ubuntu-22-04-build-iso-both-mbr-and-efi
+dd if="${RELEASE_ISO_FILENAME}" bs=1 count=432 of=${MBR_IMAGE_FILENAME}
+
+# this can change in the relase iso needs to be checked if the relase changes 
+dd if="${RELEASE_ISO_FILENAME}" bs=512 skip=7989048 count=8496 of=${EFI_IMAGE_FILNAME}
 
 # Unpack ISO, make data writable
 xorriso -osirrox on -indev  "${RELEASE_ISO_FILENAME}" -- -extract / "${UNPACKED_IMAGE_PATH}"
@@ -37,17 +46,22 @@ cp ../nitrokey-oem-${UBUNTU_RELEASE}.seed preseed/ubuntu.seed
 cp ../post-install.sh ./
 popd
 
-# Build the new ISO
-xorriso -as mkisofs -r -V "Nitrokey OEM Ubuntu Install" \
-	-cache-inodes -J -l \
-	-isohybrid-mbr "${MBR_IMAGE_FILENAME}" \
-	-c isolinux/boot.cat \
-	-b isolinux/isolinux.bin \
-		-no-emul-boot -boot-load-size 4 -boot-info-table \
-	-eltorito-alt-boot \
-	-e boot/grub/efi.img \
-		-no-emul-boot -isohybrid-gpt-basdat \
-	-o "${CUSTOM_ISO_FILENAME}" \
-	"${UNPACKED_IMAGE_PATH}"
+# https://askubuntu.com/questions/1403546/ubuntu-22-04-build-iso-both-mbr-and-efi
+xorriso -as mkisofs -r \
+  -V 'Nitrokey OEM Ubuntu Install' \
+  -o $CUSTOM_ISO_FILENAME \
+  --grub2-mbr ${MBR_IMAGE_FILENAME} \
+  -partition_offset 16 \
+  --mbr-force-bootable \
+  -append_partition 2 28732ac11ff8d211ba4b00a0c93ec93b  ${EFI_IMAGE_FILNAME}\
+  -appended_part_as_gpt \
+  -iso_mbr_part_type a2a0d0ebe5b9334487c068b6b72699c7 \
+  -c '/boot.catalog' \
+  -b '/boot/grub/i386-pc/eltorito.img' \
+    -no-emul-boot -boot-load-size 4 -boot-info-table --grub2-boot-info \
+  -eltorito-alt-boot \
+  -e '--interval:appended_partition_2:::' \
+    -no-emul-boot \
+    "${UNPACKED_IMAGE_PATH}"
 
 

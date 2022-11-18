@@ -4,7 +4,7 @@
 oem-config-prepare --quiet
 
 # Remove Amazon ads
-apt-get -y remove ubuntu-web-launchers
+#apt-get -y remove ubuntu-web-launchers
 
 # Install Nitrokey App
 add-apt-repository -y ppa:nitrokey/nitrokey
@@ -19,7 +19,7 @@ mkdir -p /etc/dconf/db/local.d/
 echo "[org/gnome/shell]" > /etc/dconf/db/local.d/01-favorites
 grep favorite-apps /usr/share/glib-2.0/schemas/10_ubuntu-settings.gschema.override | sed "s/ ]$/, 'nitrokey-app.desktop' ]/" >> /etc/dconf/db/local.d/01-favorites 
 
-dconf update
+#dconf update
 
 # Cleanup
 rm /root/post-install.sh
