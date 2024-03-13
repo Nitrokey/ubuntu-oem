@@ -97,8 +97,8 @@ d-i partman-auto/choose_recipe select atomic
 
 # When disk encryption is enabled, skip wiping the partitions beforehand.
 d-i partman-auto-crypto/erase_disks boolean false
-d-i partman-crypto/passphrase string PleaseChangeMe
-d-i partman-crypto/passphrase-again string PleaseChangeMe
+d-i partman-crypto/passphrase string 12345678
+d-i partman-crypto/passphrase-again string 12345678
 d-i partman-crypto/weak_passphrase boolean true
 
 # This makes partman automatically partition without confirmation.
