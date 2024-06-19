@@ -8,60 +8,44 @@ set -xe
 
 # Basic parameters
 DEVICE=nitropad_nitropc
-UBUNTU_RELEASE="22.04"
-UBUNTU_POINT_RELEASE=".1"
+UBUNTU_RELEASE="24.04"
+UBUNTU_POINT_RELEASE=""
 RELEASE_ISO_FILENAME="ubuntu-${UBUNTU_RELEASE}${UBUNTU_POINT_RELEASE}-desktop-amd64.iso"
-CUSTOM_ISO_FILENAME="ubuntu-${UBUNTU_RELEASE}${UBUNTU_POINT_RELEASE}-${DEVICE}-oem-amd64.iso"
-#DOWNLOAD_URL="https://releases.ubuntu.com/${UBUNTU_RELEASE}/${RELEASE_ISO_FILENAME}"
-
-# Use Daily Image because of this Bug: https://bugs.launchpad.net/ubuntu/+source/snapd/+bug/1983528
-DOWNLOAD_URL="https://cdimage.ubuntu.com/jammy/daily-live/20220920/jammy-desktop-amd64.iso"
+CUSTOM_ISO_FILENAME="ubuntu-${UBUNTU_RELEASE}${UBUNTU_POINT_RELEASE}-${DEVICE}-oem-$1-amd64.iso"
+DOWNLOAD_URL="https://releases.ubuntu.com/${UBUNTU_RELEASE}/${RELEASE_ISO_FILENAME}"
+GENISO_BOOTIMG="boot/grub/i386-pc/eltorito.img"
+GENISO_BOOTCATALOG="/boot.catalog"
+GENISO_START_SECTOR="$(LANG=C fdisk -l ${RELEASE_ISO_FILENAME} |grep iso2 | cut -d' ' -f2)"
+GENISO_END_SECTOR="$(LANG=C fdisk -l ${RELEASE_ISO_FILENAME} |grep iso2 | cut -d' ' -f3)"
 
 UNPACKED_IMAGE_PATH="./unpacked-iso/"
-MBR_IMAGE_FILENAME="${RELEASE_ISO_FILENAME}.mbr"
-EFI_IMAGE_FILNAME="${RELEASE_ISO_FILENAME}.efi"
 
 if [ ! -f "${RELEASE_ISO_FILENAME}" ]; then
         wget -q ${DOWNLOAD_URL} -O ${RELEASE_ISO_FILENAME}
 fi
 
-# It's easier to copy the MBR off the original image than to generate a new one
-# that would be identical anyway
-# see https://askubuntu.com/questions/1403546/ubuntu-22-04-build-iso-both-mbr-and-efi
-dd if="${RELEASE_ISO_FILENAME}" bs=1 count=432 of=${MBR_IMAGE_FILENAME}
-
-# this can change in the relase iso needs to be checked if the relase changes 
-dd if="${RELEASE_ISO_FILENAME}" bs=512 skip=7989048 count=8496 of=${EFI_IMAGE_FILNAME}
-
-# Unpack ISO, make data writable
 xorriso -osirrox on -indev  "${RELEASE_ISO_FILENAME}" -- -extract / "${UNPACKED_IMAGE_PATH}"
-chmod -R u+w unpacked-iso/
+chmod -R u+w ${UNPACKED_IMAGE_PATH}
 
-pushd unpacked-iso
-# Patch ISOLINUX and GRUB configs to remove unnecessary choices and, more
-# importantly, add kernel command line arguments that force Ubiquity into
-# automatic mode
-patch -p1 --forward < ../bootconfig-${UBUNTU_RELEASE}.patch
-cp ../nitrokey-oem-${UBUNTU_RELEASE}.seed preseed/ubuntu.seed
-cp ../post-install.sh ./
-popd
+sed -i 's/Ubuntu/Nitrokey OEM/g' ${UNPACKED_IMAGE_PATH}boot/grub/grub.cfg
 
-# https://askubuntu.com/questions/1403546/ubuntu-22-04-build-iso-both-mbr-and-efi
-xorriso -as mkisofs -r \
-  -V 'Nitrokey OEM Ubuntu Install' \
-  -o $CUSTOM_ISO_FILENAME \
-  --grub2-mbr ${MBR_IMAGE_FILENAME} \
-  -partition_offset 16 \
-  --mbr-force-bootable \
-  -append_partition 2 28732ac11ff8d211ba4b00a0c93ec93b  ${EFI_IMAGE_FILNAME}\
-  -appended_part_as_gpt \
-  -iso_mbr_part_type a2a0d0ebe5b9334487c068b6b72699c7 \
-  -c '/boot.catalog' \
-  -b '/boot/grub/i386-pc/eltorito.img' \
-    -no-emul-boot -boot-load-size 4 -boot-info-table --grub2-boot-info \
-  -eltorito-alt-boot \
-  -e '--interval:appended_partition_2:::' \
-    -no-emul-boot \
-    "${UNPACKED_IMAGE_PATH}"
+cp autoinstall.yaml ${UNPACKED_IMAGE_PATH}
+
+if [ $1 == "en" ]; then
+	sed -i "s/de_DE/en_US/g" ${UNPACKED_IMAGE_PATH}autoinstall.yaml
+	sed -i "s/layout: de/layout: us/g" ${UNPACKED_IMAGE_PATH}autoinstall.yaml
+fi
 
 
+# https://github.com/YasuhiroABE/ub-autoinstall-iso/blob/main/Makefile
+LANG=C xorriso -as mkisofs  \
+	-V 'Nitrokey OEM Ubuntu Install' \
+	-output "$CUSTOM_ISO_FILENAME"  \
+	-eltorito-boot "${GENISO_BOOTIMG}" \
+	-eltorito-catalog "${GENISO_BOOTCATALOG}" -no-emul-boot \
+	-boot-load-size 4 -boot-info-table -eltorito-alt-boot \
+	-no-emul-boot -isohybrid-gpt-basdat \
+	-append_partition 2 28732ac11ff8d211ba4b00a0c93ec93b --interval:local_fs:${GENISO_START_SECTOR}d-${GENISO_END_SECTOR}d::"${RELEASE_ISO_FILENAME}" \
+	-e '--interval:appended_partition_2_start_1782357s_size_8496d:all::' \
+	--grub2-mbr --interval:local_fs:0s-15s:zero_mbrpt,zero_gpt:"${RELEASE_ISO_FILENAME}" \
+	"${UNPACKED_IMAGE_PATH}"
