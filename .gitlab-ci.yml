@@ -18,7 +18,7 @@ variables:
   DEVICE_FOLDER: "nitropad"
   UPLOAD_FOLDER: "ubuntu-oem"
 
-oem-build:
+oem-build-EN:
   image: registry.git.nitrokey.com/nitrokey/gitlab-ci/ci-oem-release:latest
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push"'
@@ -27,7 +27,27 @@ oem-build:
     - docker
   stage: build
   script:
-    - ./make-image.sh
+    - ./make-image.sh en
+    - ls
+    - mkdir -p artifacts
+    - cp *nitropad*.iso artifacts/
+  after_script:
+    - wget $icon_server/checkmark/$CI_COMMIT_REF_NAME/$CI_COMMIT_SHA/$CI_JOB_NAME/$CI_JOB_STATUS/${CI_JOB_URL#*/*/*/}
+  artifacts:
+    paths:
+      - artifacts
+    expire_in: 1 hr
+
+oem-build-DE:
+  image: registry.git.nitrokey.com/nitrokey/gitlab-ci/ci-oem-release:latest
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+  tags:
+    - docker
+  stage: build
+  script:
+    - ./make-image.sh de
     - ls
     - mkdir -p artifacts
     - cp *nitropad*.iso artifacts/
