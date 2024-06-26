@@ -1,0 +1,20 @@
+autoinstall:
+  version: 1
+  storage:
+    layout:
+      name: lvm
+      sizing-policy: all
+      password: "12345678"
+  locale: de_DE
+  keyboard:
+    layout: de
+  packages:
+    - flatpak
+    - gnome-software-plugin-flatpak
+    - nitrokey-app
+  late-commands:
+    - curtin in-target -- flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+    - curtin in-target -- flatpak install --assumeyes --noninteractive flathub com.nitrokey.nitrokey-app2
+    - curtin in-target -- wget https://raw.githubusercontent.com/Nitrokey/libnitrokey/master/data/41-nitrokey.rules -O /etc/udev/rules.d/41-nitrokey.rules
+    - curtin in-target -- chmod 644 /etc/udev/rules.d/41-nitrokey.rules
+    - curtin in-target -- echo "nitropad" > /etc/hostname
