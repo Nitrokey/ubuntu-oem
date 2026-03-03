@@ -1,3 +1,6 @@
+**Do not use this repository anymore - please refer to [the documentation](https://docs.nitrokey.com/nitropad-nitropc/os-reinstallation) on how to properly re-install the OS on a Nitropad/NitroPC**
+
+
 # Ubuntu LTS unattended OEM installer with LUKS+LVM
 
 This script creates an installer image for Ubuntu LTS that
